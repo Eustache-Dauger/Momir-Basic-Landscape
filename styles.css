@@ -52,7 +52,7 @@ button{ font-family:inherit; }
 .rotate-card p{ font-size:15px; line-height:1.5; color:var(--text-mute); margin:0; }
 .rotate-card strong{ color:var(--led); }
 
-@media (orientation:portrait){
+@media screen and (orientation:portrait){
   .rotate-notice{ display:flex; }
   .app{ display:none !important; }
 }
@@ -342,26 +342,41 @@ button{ font-family:inherit; }
    #print-area is populated with an embedded (base64) image just before
    window.print() is called, then shown; everything else is hidden. This
    avoids relying on the live cross-origin <img> being fully decoded by
-   the time the print engine renders — a common cause of blank images. */
+   the time the print engine renders — a common cause of blank images.
+
+   Thermal receipt printers (via RawBT etc.) have no real "page" — they
+   print a continuous narrow strip. The @page rule below sizes the print
+   output to a 58mm-wide roll with an open-ended (auto) length, so the
+   card prints as a narrow column instead of being scaled to fit a
+   Letter/A4 page. If you switch to an 80mm printer later, change the
+   two 58mm values below to 80mm. */
+@page{
+  size: 58mm auto;
+  margin: 0;
+}
+
 .print-only{ display:none; }
 
 @media print{
   .app{ display:none !important; }
   .print-only{
     display:block !important;
-    padding:24px;
+    width:58mm;
+    padding:3mm;
+    box-sizing:border-box;
     font-family:var(--font-paper);
     color:#000;
   }
   #print-image{
     display:block;
-    max-width:340px;
-    margin:0 auto 12px;
+    width:100%;
+    height:auto;
+    margin:0 auto 2mm;
   }
   .print-meta{ text-align:center; }
-  #print-name{ font-size:18px; margin:0 0 4px; }
-  #print-typeline{ font-size:13px; font-style:italic; margin:0 0 4px; }
-  #print-costline{ font-size:13px; margin:0; }
+  #print-name{ font-size:14px; margin:0 0 2mm; }
+  #print-typeline{ font-size:11px; font-style:italic; margin:0 0 2mm; }
+  #print-costline{ font-size:11px; margin:0; }
 }
 
 /* ---------- Small landscape phones ---------- */
