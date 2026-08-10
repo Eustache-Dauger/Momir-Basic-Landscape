@@ -130,4 +130,69 @@
           <p>Create a token that's a copy of a random creature card with converted mana cost X.</p>
           <p class="emblem-note">Activate this ability only any time you could cast a sorcery, and only once each turn.</p>
         </div>
-        <p class="rules-footnote">Use the
+        <p class="rules-footnote">Use the <strong>Card Tool</strong> tab to generate that random creature: key in X and hit Enter, or hit Random for an unrestricted pull.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============ TOKEN ============ -->
+  <main class="panel view" id="view-token">
+    <div class="token-stage">
+      <figure class="token-frame">
+        <img src="https://i0.wp.com/mtgazone.com/wp-content/uploads/2019/05/factory-of-momir-vig-emblem.png?w=347&amp;ssl=1"
+             alt="Momir Vig, Simic Visionary emblem token" id="token-image">
+        <figcaption>Momir Vig, Simic Visionary — Emblem</figcaption>
+      </figure>
+      <button class="btn-print btn-print-token" id="btn-print-token">🖨 Print Token</button>
+    </div>
+  </main>
+
+  <!-- ============ CONFIG ============ -->
+  <main class="panel view" id="view-config">
+    <div class="config-columns">
+      <div class="config-col">
+        <h2 class="paper-h2">Card Types</h2>
+        <p class="config-hint">Types eligible when generating a card.</p>
+        <div class="toggle-list" id="type-toggles">
+          <label class="toggle"><input type="checkbox" value="creature" checked><span>Creature</span></label>
+          <label class="toggle"><input type="checkbox" value="artifact"><span>Artifact</span></label>
+          <label class="toggle"><input type="checkbox" value="enchantment"><span>Enchantment</span></label>
+          <label class="toggle"><input type="checkbox" value="instant"><span>Instant</span></label>
+          <label class="toggle"><input type="checkbox" value="sorcery"><span>Sorcery</span></label>
+          <label class="toggle"><input type="checkbox" value="planeswalker"><span>Planeswalker</span></label>
+        </div>
+      </div>
+
+      <div class="config-col">
+        <h2 class="paper-h2">Formats</h2>
+        <p class="config-hint">Which card pool to draw prints from.</p>
+        <div class="toggle-list" id="format-toggles">
+          <label class="toggle toggle-radio"><input type="radio" name="format" value="paper" checked><span>Paper</span></label>
+          <label class="toggle toggle-radio"><input type="radio" name="format" value="arena"><span>Arena</span></label>
+          <label class="toggle toggle-radio"><input type="radio" name="format" value="mtgo"><span>MTGO</span></label>
+        </div>
+        <p class="config-note" id="config-status">Settings apply immediately to new pulls.</p>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<!-- Dedicated print target. Populated just before window.print() with an
+     embedded (base64) copy of the image so the print render pass never
+     depends on a live cross-origin network request. Shown/hidden via
+     the `print-mode` class on <body>, not @media print alone, since
+     some print pipelines (RawBT) capture the live screen as-is. -->
+<div id="print-area" class="print-only">
+  <img id="print-image" alt="">
+  <div class="print-meta">
+    <h2 id="print-name"></h2>
+    <p id="print-typeline"></p>
+    <p id="print-costline"></p>
+  </div>
+  <button id="btn-done-printing" class="btn-done-printing">✓ Done — back to app</button>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
