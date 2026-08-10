@@ -89,6 +89,7 @@
     name: document.getElementById('card-name'),
     typeline: document.getElementById('card-typeline'),
     costline: document.getElementById('card-costline'),
+    printBtn: document.getElementById('btn-print-card'),
   };
 
   function showState(state) {
@@ -96,6 +97,7 @@
     els.loading.hidden = state !== 'loading';
     els.error.hidden = state !== 'error';
     els.card.hidden = state !== 'card';
+    els.printBtn.hidden = state !== 'card';
   }
 
   function buildQuery({ cmc }) {

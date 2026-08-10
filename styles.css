@@ -228,9 +228,10 @@ button{ font-family:inherit; }
   height:100%;
   max-height:100%;
   display:flex; flex-direction:column; align-items:center;
-  padding:14px 16px 12px;
+  padding:14px 16px 44px;
   gap:8px;
   width:min(230px, 100%);
+  overflow-y:auto;
 }
 @keyframes print-out{
   from{ transform:translateY(-24px); opacity:0; }
@@ -238,7 +239,8 @@ button{ font-family:inherit; }
 }
 .card-image{
   width:100%;
-  max-height:calc(100% - 74px);
+  flex-shrink:0;
+  max-height:min(60%, 320px);
   object-fit:contain;
   border-radius:6px;
   box-shadow:0 3px 10px rgba(0,0,0,.35);
@@ -258,6 +260,26 @@ button{ font-family:inherit; }
   cursor:pointer;
 }
 .btn-print:hover{ background:rgba(217,143,59,.15); }
+
+/* Pinned print button — sits fixed within the result panel regardless of
+   how much text/content the card above it has, so long card names or
+   type lines can never push it out of reach. */
+.btn-print-static{
+  position:absolute;
+  left:50%;
+  bottom:12px;
+  transform:translateX(-50%);
+  z-index:5;
+  border:1px solid var(--brass-dim);
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--font-body); font-size:12px; font-weight:700;
+  padding:8px 20px;
+  border-radius:20px;
+  cursor:pointer;
+  box-shadow:0 4px 12px rgba(0,0,0,.4);
+}
+.btn-print-static:hover{ background:var(--paper-2); }
 
 /* ================= RULES ================= */
 #view-rules{ align-items:stretch; overflow-y:auto; }
@@ -338,24 +360,64 @@ button{ font-family:inherit; }
 .toggle input{ accent-color:var(--brass); width:15px; height:15px; }
 .config-note{ font-size:11px; color:var(--text-mute); margin-top:14px; }
 
-/* ---------- Print stylesheet ----------
-   #print-area is populated with an embedded (base64) image just before
-   window.print() is called, then shown; everything else is hidden. This
-   avoids relying on the live cross-origin <img> being fully decoded by
-   the time the print engine renders — a common cause of blank images.
+/* ---------- Print mode (JS-driven, not media-query-driven) ----------
+   Some print pipelines (notably RawBT, used for thermal receipt
+   printers) capture whatever is currently rendered on screen rather
+   than properly honoring @media print. So instead of relying on CSS
+   media queries to swap views, app.js adds/removes a `print-mode`
+   class on <body> directly around the print action — this guarantees
+   the print card is the only thing visible at the moment printing
+   happens, no matter how the print pipeline decides to capture it. */
+.print-only{ display:none; }
 
-   Thermal receipt printers (via RawBT etc.) have no real "page" — they
-   print a continuous narrow strip. The @page rule below sizes the print
-   output to a 58mm-wide roll with an open-ended (auto) length, so the
-   card prints as a narrow column instead of being scaled to fit a
-   Letter/A4 page. If you switch to an 80mm printer later, change the
-   two 58mm values below to 80mm. */
+body.print-mode .app{ display:none !important; }
+body.print-mode .rotate-notice{ display:none !important; }
+
+body.print-mode .print-only{
+  display:block !important;
+  width:58mm;
+  padding:3mm;
+  box-sizing:border-box;
+  font-family:var(--font-paper);
+  color:#000;
+  background:#fff;
+}
+body.print-mode #print-image{
+  display:block;
+  width:100%;
+  height:auto;
+  margin:0 auto 2mm;
+}
+body.print-mode .print-meta{ text-align:center; }
+body.print-mode #print-name{ font-size:14px; margin:0 0 2mm; }
+body.print-mode #print-typeline{ font-size:11px; font-style:italic; margin:0 0 2mm; }
+body.print-mode #print-costline{ font-size:11px; margin:0; }
+body.print-mode .btn-done-printing{
+  display:inline-block;
+  margin-top:3mm;
+  padding:6px 14px;
+  border-radius:16px;
+  border:1px solid #999;
+  background:#fff;
+  color:#000;
+  font-family:var(--font-body);
+  font-size:11px;
+  cursor:pointer;
+}
+.btn-done-printing{ display:none; }
+
+/* ---------- Print stylesheet (fallback for real browser print/PDF) ----------
+   Kept as a secondary safety net for genuine browser print dialogs
+   (e.g. testing via desktop Chrome's print preview) that do respect
+   @media print properly. Thermal receipt printers (via RawBT etc.)
+   have no real "page" — the @page rule below sizes output to a
+   58mm-wide roll with an open-ended (auto) length. If you switch to
+   an 80mm printer later, change the 58mm values in both this block
+   and the print-mode block above to 80mm. */
 @page{
   size: 58mm auto;
   margin: 0;
 }
-
-.print-only{ display:none; }
 
 @media print{
   .app{ display:none !important; }
@@ -377,6 +439,7 @@ button{ font-family:inherit; }
   #print-name{ font-size:14px; margin:0 0 2mm; }
   #print-typeline{ font-size:11px; font-style:italic; margin:0 0 2mm; }
   #print-costline{ font-size:11px; margin:0; }
+  .btn-done-printing{ display:none !important; }
 }
 
 /* ---------- Small landscape phones ---------- */
@@ -385,5 +448,5 @@ button{ font-family:inherit; }
   .led-digits{ font-size:26px; }
   .key{ padding:7px 0; font-size:14px; }
   .btn-random{ padding:8px 0; }
-  .receipt-card{ width:190px; padding:10px 12px 10px; }
+  .receipt-card{ width:190px; padding:10px 12px 40px; }
 }
