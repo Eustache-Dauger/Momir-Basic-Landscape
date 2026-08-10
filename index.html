@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#121316">
+<meta name="description" content="Momir Basic Toolkit — random creature generator, rules reference, and token card for the Momir Basic Magic: The Gathering format.">
+<title>Momir Basic Toolkit</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Inter:wght@400;500;600;700&family=Zilla+Slab:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="rotate-notice" class="rotate-notice" aria-hidden="true">
+  <div class="rotate-card">
+    <div class="rotate-icon">⟲</div>
+    <p>Momir Basic Toolkit runs in <strong>landscape</strong>.<br>Turn your phone sideways.</p>
+  </div>
+</div>
+
+<div class="app" id="app">
+
+  <!-- Left nav rail -->
+  <nav class="rail" aria-label="Sections">
+    <div class="rail-brand">
+      <span class="rail-brand-mark">M</span>
+    </div>
+    <button class="rail-btn is-active" data-tab="tool" aria-current="page">
+      <span class="rail-glyph">⌗</span><span class="rail-label">Card&nbsp;Tool</span>
+    </button>
+    <button class="rail-btn" data-tab="rules">
+      <span class="rail-glyph">§</span><span class="rail-label">Rules</span>
+    </button>
+    <button class="rail-btn" data-tab="token">
+      <span class="rail-glyph">◈</span><span class="rail-label">Token</span>
+    </button>
+    <button class="rail-btn" data-tab="config">
+      <span class="rail-glyph">⚙</span><span class="rail-label">Config</span>
+    </button>
+  </nav>
+
+  <!-- ============ CARD TOOL ============ -->
+  <main class="panel view is-active" id="view-tool">
+
+    <section class="keypad-wrap">
+      <div class="led-display" id="mana-display" aria-live="polite">
+        <span class="led-label">MANA VALUE</span>
+        <span class="led-digits" id="led-digits">–</span>
+      </div>
+
+      <div class="keypad" role="group" aria-label="Mana value keypad">
+        <button class="key" data-key="7">7</button>
+        <button class="key" data-key="8">8</button>
+        <button class="key" data-key="9">9</button>
+        <button class="key" data-key="4">4</button>
+        <button class="key" data-key="5">5</button>
+        <button class="key" data-key="6">6</button>
+        <button class="key" data-key="1">1</button>
+        <button class="key" data-key="2">2</button>
+        <button class="key" data-key="3">3</button>
+        <button class="key key-wide" data-key="clear">Clear</button>
+        <button class="key" data-key="0">0</button>
+        <button class="key key-enter" data-key="enter">Enter</button>
+      </div>
+
+      <button class="btn-random" id="btn-random">
+        <span class="btn-random-glyph">✦</span> Random
+      </button>
+    </section>
+
+    <section class="slot-wrap">
+      <div class="print-slot">
+        <div class="print-slot-mouth"></div>
+      </div>
+
+      <div class="result-stage" id="result-stage">
+        <div class="result-empty" id="result-empty">
+          <p>Punch in a mana value and hit <strong>Enter</strong> —<br>or hit <strong>Random</strong> for anything.</p>
+        </div>
+
+        <div class="result-loading" id="result-loading" hidden>
+          <div class="spinner" aria-hidden="true"></div>
+          <p>Printing…</p>
+        </div>
+
+        <div class="result-error" id="result-error" hidden>
+          <p id="result-error-text">No matching creature found. Try another value.</p>
+        </div>
+
+        <article class="receipt-card" id="receipt-card" hidden>
+          <img id="card-image" class="card-image" alt="">
+          <div class="receipt-meta">
+            <h2 id="card-name" class="card-name"></h2>
+            <p id="card-typeline" class="card-typeline"></p>
+            <p id="card-costline" class="card-costline"></p>
+          </div>
+          <button class="btn-print" id="btn-print-card" title="Print this card">🖨 Print</button>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ RULES ============ -->
+  <main class="panel view" id="view-rules">
+    <div class="rules-columns">
+      <div class="rules-col">
+        <h1 class="paper-h1">Momir Basic</h1>
+        <h2 class="paper-h2">Each deck is composed of</h2>
+        <ul class="paper-list">
+          <li><strong>60 basic lands</strong> — 12 of each type</li>
+          <li><strong>40 creature cards</strong></li>
+        </ul>
+
+        <h2 class="paper-h2">Each player receives</h2>
+        <ul class="paper-list">
+          <li><strong>24 life points</strong></li>
+          <li>1 Emblem (see right)</li>
+        </ul>
+      </div>
+
+      <div class="rules-col rules-col-emblem">
+        <h2 class="paper-h2">Emblem ability</h2>
+        <div class="emblem-box">
+          <p class="emblem-cost">{X}, Discard a card:</p>
+          <p>Create a token that's a copy of a random creature card with converted mana cost X.</p>
+          <p class="emblem-note">Activate this ability only any time you could cast a sorcery, and only once each turn.</p>
+        </div>
+        <p class="rules-footnote">Use the <strong>Card Tool</strong> tab to generate that random creature: key in X and hit Enter, or hit Random for an unrestricted pull.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============ TOKEN ============ -->
+  <main class="panel view" id="view-token">
+    <div class="token-stage">
+      <figure class="token-frame">
+        <img src="https://i0.wp.com/mtgazone.com/wp-content/uploads/2019/05/factory-of-momir-vig-emblem.png?w=347&amp;ssl=1"
+             alt="Momir Vig, Simic Visionary emblem token" id="token-image">
+        <figcaption>Momir Vig, Simic Visionary — Emblem</figcaption>
+      </figure>
+      <button class="btn-print btn-print-token" id="btn-print-token">🖨 Print Token</button>
+    </div>
+  </main>
+
+  <!-- ============ CONFIG ============ -->
+  <main class="panel view" id="view-config">
+    <div class="config-columns">
+      <div class="config-col">
+        <h2 class="paper-h2">Card Types</h2>
+        <p class="config-hint">Types eligible when generating a card.</p>
+        <div class="toggle-list" id="type-toggles">
+          <label class="toggle"><input type="checkbox" value="creature" checked><span>Creature</span></label>
+          <label class="toggle"><input type="checkbox" value="artifact"><span>Artifact</span></label>
+          <label class="toggle"><input type="checkbox" value="enchantment"><span>Enchantment</span></label>
+          <label class="toggle"><input type="checkbox" value="instant"><span>Instant</span></label>
+          <label class="toggle"><input type="checkbox" value="sorcery"><span>Sorcery</span></label>
+          <label class="toggle"><input type="checkbox" value="planeswalker"><span>Planeswalker</span></label>
+        </div>
+      </div>
+
+      <div class="config-col">
+        <h2 class="paper-h2">Formats</h2>
+        <p class="config-hint">Which card pool to draw prints from.</p>
+        <div class="toggle-list" id="format-toggles">
+          <label class="toggle toggle-radio"><input type="radio" name="format" value="paper" checked><span>Paper</span></label>
+          <label class="toggle toggle-radio"><input type="radio" name="format" value="arena"><span>Arena</span></label>
+          <label class="toggle toggle-radio"><input type="radio" name="format" value="mtgo"><span>MTGO</span></label>
+        </div>
+        <p class="config-note" id="config-status">Settings apply immediately to new pulls.</p>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<!-- Dedicated print target. Populated just before window.print() with an
+     embedded (base64) copy of the image so the print render pass never
+     depends on a live cross-origin network request. -->
+<div id="print-area" class="print-only">
+  <img id="print-image" alt="">
+  <div class="print-meta">
+    <h2 id="print-name"></h2>
+    <p id="print-typeline"></p>
+    <p id="print-costline"></p>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
