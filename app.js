@@ -193,8 +193,30 @@
 
     printImage.src = dataUrl;
     await waitForImageLoad(printImage);
+
+    // Switch the DOM itself to show only the print card, rather than
+    // relying on @media print. Some print pipelines (RawBT included)
+    // capture the on-screen DOM as-is instead of honoring media types,
+    // so this guarantees the print card is what gets captured no matter
+    // how the underlying print pipeline works.
+    document.body.classList.add('print-mode');
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
     window.print();
+
+    // Safety net: if 'afterprint' never fires (some Android print flows
+    // skip it), restore the normal view after a few seconds anyway.
+    clearTimeout(printModeTimeout);
+    printModeTimeout = setTimeout(exitPrintMode, 15000);
   }
+
+  let printModeTimeout;
+  function exitPrintMode() {
+    document.body.classList.remove('print-mode');
+    clearTimeout(printModeTimeout);
+  }
+  window.addEventListener('afterprint', exitPrintMode);
+  document.getElementById('btn-done-printing').addEventListener('click', exitPrintMode);
 
   document.getElementById('btn-print-card').addEventListener('click', () => {
     printImageWithMeta(els.img.src, {
