@@ -10,14 +10,19 @@
     config: document.getElementById('view-config'),
   };
 
-  railBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      railBtns.forEach(b => { b.classList.remove('is-active'); b.removeAttribute('aria-current'); });
-      btn.classList.add('is-active');
-      btn.setAttribute('aria-current', 'page');
-      Object.values(views).forEach(v => v.classList.remove('is-active'));
-      views[btn.dataset.tab].classList.add('is-active');
+  function switchTab(tabName) {
+    railBtns.forEach(b => {
+      const isMatch = b.dataset.tab === tabName;
+      b.classList.toggle('is-active', isMatch);
+      if (isMatch) b.setAttribute('aria-current', 'page');
+      else b.removeAttribute('aria-current');
     });
+    Object.values(views).forEach(v => v.classList.remove('is-active'));
+    views[tabName].classList.add('is-active');
+  }
+
+  railBtns.forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
 
   // ---------- Keypad / LED display ----------
@@ -90,6 +95,7 @@
     typeline: document.getElementById('card-typeline'),
     costline: document.getElementById('card-costline'),
     printBtn: document.getElementById('btn-print-card'),
+    relatedTokens: document.getElementById('related-tokens'),
   };
 
   function showState(state) {
@@ -149,7 +155,56 @@
     const cmcText = `MV ${Math.floor(card.cmc)}${manaCost ? '  ·  ' + manaCost.replace(/[{}]/g, '') : ''}`;
     els.costline.textContent = cmcText;
 
+    renderRelatedTokens(card);
     showState('card');
+  }
+
+  // Scryfall marks cards that produce named tokens, or conjure a copy of
+  // a specific real card (e.g. Jet Collector → Mox Jet), via `all_parts` —
+  // a curated relationship, not text-parsing, so it's reliably accurate
+  // where Scryfall has recorded it (not exhaustive for every card with a
+  // "create"/"conjure" ability, but covers a large share of them).
+  function renderRelatedTokens(card) {
+    const parts = (card.all_parts || []).filter(
+      p => p.component === 'token' || p.component === 'combo_piece'
+    );
+    els.relatedTokens.innerHTML = '';
+    if (parts.length === 0) {
+      els.relatedTokens.hidden = true;
+      return;
+    }
+    parts.forEach(part => {
+      const isToken = part.component === 'token';
+      const pill = document.createElement('button');
+      pill.className = isToken ? 'related-token-pill' : 'related-token-pill related-token-pill--conjured';
+      pill.type = 'button';
+      pill.textContent = isToken ? `◈ ${part.name}` : `✦ Conjures: ${part.name}`;
+      pill.title = isToken
+        ? `View & print the ${part.name} token`
+        : `View & print a copy of ${part.name}`;
+      pill.addEventListener('click', () => openRelatedToken(part));
+      els.relatedTokens.appendChild(pill);
+    });
+    els.relatedTokens.hidden = false;
+  }
+
+  async function openRelatedToken(part) {
+    switchTab('token');
+    tokenSearchStatus.textContent = 'Loading…';
+    try {
+      const res = await fetch(part.uri);
+      if (!res.ok) throw new Error(`Scryfall error ${res.status}`);
+      const relatedCard = await res.json();
+      const face = relatedCard.image_uris ? relatedCard : (relatedCard.card_faces && relatedCard.card_faces[0]);
+      const imageUris = face && face.image_uris;
+      const imgSrc = imageUris ? (imageUris.normal || imageUris.large || imageUris.small) : '';
+      setTokenPreview({ imgSrc, name: relatedCard.name, typeline: relatedCard.type_line || '' });
+      tokenSearchStatus.textContent = '';
+      clearActiveResultRow();
+    } catch (err) {
+      tokenSearchStatus.textContent = 'Could not load that card. Try again.';
+      console.error(err);
+    }
   }
 
   // ---------- Printing ----------
@@ -228,10 +283,107 @@
     });
   });
 
-  document.getElementById('btn-print-token').addEventListener('click', () => {
-    const tokenImg = document.getElementById('token-image');
-    printImageWithMeta(tokenImg.src, {
+  // ---------- Token search & preview ----------
+  const tokenSearchInput = document.getElementById('token-search-input');
+  const tokenSearchBtn = document.getElementById('token-search-btn');
+  const tokenResultsEl = document.getElementById('token-results');
+  const tokenSearchStatus = document.getElementById('token-search-status');
+  const tokenPreviewImage = document.getElementById('token-preview-image');
+  const tokenPreviewName = document.getElementById('token-preview-name');
+  const tokenPreviewTypeline = document.getElementById('token-preview-typeline');
+
+  let currentTokenPreview = {
+    imgSrc: tokenPreviewImage.src,
+    name: tokenPreviewName.textContent,
+    typeline: tokenPreviewTypeline.textContent,
+  };
+
+  function setTokenPreview({ imgSrc, name, typeline }) {
+    tokenPreviewImage.src = imgSrc;
+    tokenPreviewImage.alt = name;
+    tokenPreviewName.textContent = name;
+    tokenPreviewTypeline.textContent = typeline || '';
+    currentTokenPreview = { imgSrc, name, typeline: typeline || '' };
+  }
+
+  function clearActiveResultRow() {
+    tokenResultsEl.querySelectorAll('.token-result-row').forEach(r => r.classList.remove('is-active'));
+  }
+
+  function setActiveResultRow(row) {
+    clearActiveResultRow();
+    row.classList.add('is-active');
+  }
+
+  // Wire the always-present default emblem row.
+  const defaultEmblemRow = tokenResultsEl.querySelector('[data-default-emblem]');
+  defaultEmblemRow.addEventListener('click', () => {
+    setTokenPreview({
+      imgSrc: 'https://i0.wp.com/mtgazone.com/wp-content/uploads/2019/05/factory-of-momir-vig-emblem.png?w=347&ssl=1',
       name: 'Momir Vig, Simic Visionary — Emblem',
+      typeline: 'Emblem',
+    });
+    setActiveResultRow(defaultEmblemRow);
+  });
+
+  async function searchTokens(term) {
+    if (!term.trim()) return;
+    tokenSearchStatus.textContent = 'Searching…';
+    const query = `is:token ${term}`;
+    const url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}&order=name&unique=cards`;
+    try {
+      const res = await fetch(url);
+      if (res.status === 404) {
+        tokenSearchStatus.textContent = `No tokens found matching "${term}".`;
+        clearSearchResultRows();
+        return;
+      }
+      if (!res.ok) throw new Error(`Scryfall error ${res.status}`);
+      const data = await res.json();
+      renderTokenResults(data.cards.slice(0, 20));
+      tokenSearchStatus.textContent = data.total_cards > 20
+        ? `Showing 20 of ${data.total_cards} — refine your search for more.`
+        : `${data.total_cards} match${data.total_cards === 1 ? '' : 'es'}.`;
+    } catch (err) {
+      tokenSearchStatus.textContent = 'Could not reach the card database. Check your connection and try again.';
+      console.error(err);
+    }
+  }
+
+  function clearSearchResultRows() {
+    tokenResultsEl.querySelectorAll('.token-result-row:not([data-default-emblem])').forEach(r => r.remove());
+  }
+
+  function renderTokenResults(cards) {
+    clearSearchResultRows();
+    cards.forEach(card => {
+      const face = card.image_uris ? card : (card.card_faces && card.card_faces[0]);
+      const imageUris = face && face.image_uris;
+      const thumbSrc = imageUris ? (imageUris.small || imageUris.normal) : '';
+      const fullSrc = imageUris ? (imageUris.normal || imageUris.large || imageUris.small) : '';
+
+      const row = document.createElement('button');
+      row.className = 'token-result-row';
+      row.type = 'button';
+      row.innerHTML = `<img src="${thumbSrc}" alt=""><span></span>`;
+      row.querySelector('span').textContent = card.name;
+      row.addEventListener('click', () => {
+        setTokenPreview({ imgSrc: fullSrc, name: card.name, typeline: card.type_line || '' });
+        setActiveResultRow(row);
+      });
+      tokenResultsEl.appendChild(row);
+    });
+  }
+
+  tokenSearchBtn.addEventListener('click', () => searchTokens(tokenSearchInput.value));
+  tokenSearchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') searchTokens(tokenSearchInput.value);
+  });
+
+  document.getElementById('btn-print-token').addEventListener('click', () => {
+    printImageWithMeta(currentTokenPreview.imgSrc, {
+      name: currentTokenPreview.name,
+      typeline: currentTokenPreview.typeline,
     });
   });
 

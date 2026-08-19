@@ -99,6 +99,7 @@
             <p id="card-typeline" class="card-typeline"></p>
             <p id="card-costline" class="card-costline"></p>
           </div>
+          <div class="related-tokens" id="related-tokens" hidden></div>
         </article>
 
         <button class="btn-print-static" id="btn-print-card" title="Print this card" hidden>🖨 Print</button>
@@ -138,13 +139,36 @@
 
   <!-- ============ TOKEN ============ -->
   <main class="panel view" id="view-token">
-    <div class="token-stage">
-      <figure class="token-frame">
-        <img src="https://i0.wp.com/mtgazone.com/wp-content/uploads/2019/05/factory-of-momir-vig-emblem.png?w=347&amp;ssl=1"
-             alt="Momir Vig, Simic Visionary emblem token" id="token-image">
-        <figcaption>Momir Vig, Simic Visionary — Emblem</figcaption>
-      </figure>
-      <button class="btn-print btn-print-token" id="btn-print-token">🖨 Print Token</button>
+    <div class="token-columns">
+
+      <div class="token-search-col">
+        <h2 class="paper-h2">Search Tokens</h2>
+        <div class="token-search-bar">
+          <input type="text" id="token-search-input" placeholder="e.g. Soldier, Zombie, Clue" autocomplete="off">
+          <button id="token-search-btn" title="Search">🔍</button>
+        </div>
+        <div class="token-results" id="token-results">
+          <button class="token-result-row is-active" data-default-emblem>
+            <img src="https://i0.wp.com/mtgazone.com/wp-content/uploads/2019/05/factory-of-momir-vig-emblem.png?w=90&amp;ssl=1" alt="">
+            <span>Momir Vig, Simic Visionary — Emblem</span>
+          </button>
+        </div>
+        <p class="token-search-status" id="token-search-status"></p>
+      </div>
+
+      <div class="token-preview-col">
+        <div class="token-preview-stage" id="token-preview-stage">
+          <img id="token-preview-image" class="token-preview-image"
+               src="https://i0.wp.com/mtgazone.com/wp-content/uploads/2019/05/factory-of-momir-vig-emblem.png?w=347&amp;ssl=1"
+               alt="Momir Vig, Simic Visionary emblem token">
+          <div class="token-preview-meta">
+            <h2 id="token-preview-name">Momir Vig, Simic Visionary — Emblem</h2>
+            <p id="token-preview-typeline">Emblem</p>
+          </div>
+        </div>
+        <button class="btn-print-static" id="btn-print-token" title="Print this token">🖨 Print</button>
+      </div>
+
     </div>
   </main>
 
